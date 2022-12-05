@@ -1,0 +1,1 @@
+# php-line-length-detector
