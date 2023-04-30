@@ -9,7 +9,7 @@ class Distribution
     private array $steps;
 
     /**
-     * @param array<int> $steps
+     * @param array<int, string> $steps
      */
     public function __construct(array $steps)
     {
