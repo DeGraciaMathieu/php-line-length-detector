@@ -6,10 +6,10 @@ namespace App\Commands;
 
 use Generator;
 use LaravelZero\Framework\Commands\Command;
-use function Termwind\{render};
 use DeGraciaMathieu\FileExplorer\FileFinder;
-use App\Aggregators;
-use Illuminate\Support\Facades\View;
+use App\Bags\LengthBag;
+use App\Dtos\Thresholds;
+use App\Renderers\ViewRenderer;
 
 class InspectCommand extends Command
 {
@@ -18,7 +18,7 @@ class InspectCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'inspect {path} {--steps=30,80,120}';
+    protected $signature = 'inspect {path} {--thresholds=160,120,80,60,30}';
 
     /**
      * The description of the command.
@@ -36,14 +36,9 @@ class InspectCommand extends Command
 
         $files = $this->getFilesFromPath();
 
-        [$distribution, $statistic] = $this->analyseFiles($files);
+        $lengthBag = $this->getLengthBagFromFiles($files);
 
-        $view = View::make('inspect', [
-            'distribution' => $distribution,
-            'statistic' => $statistic,
-        ])->render();
-
-        render($view);
+        app(ViewRenderer::class)->display($lengthBag);
     }
 
     private function getFilesFromPath(): Generator
@@ -59,15 +54,11 @@ class InspectCommand extends Command
         );
     }
 
-    private function analyseFiles(Generator $files): array
+    private function getLengthBagFromFiles(Generator $files): LengthBag
     {
-        $steps = $this->option('steps');
-
-        $distribution = new Aggregators\Distribution(
-            steps: explode(',', $steps),
+        $lengthBag = new LengthBag(
+            Thresholds::fromCommand($this->option('thresholds'))
         );
-
-        $statistic = new Aggregators\Statistic();
 
         foreach ($files as $file) {
 
@@ -75,21 +66,25 @@ class InspectCommand extends Command
 
             foreach ($lines as $line) {
 
+                $line = trim($line);
+
                 $line = $this->removingLineBreaks($line);
 
                 if ($this->unwantedLine($line)) {
                     continue;
                 }
 
-                $lenght = strlen($line);
+                $length = strlen($line);
 
-                $distribution->add($lenght);
+                if ($this->lineIsTooShort($length)) {
+                    continue;
+                }
 
-                $statistic->add($lenght);
+                $lengthBag->add($length);
             }
         }
 
-        return [$distribution, $statistic];
+        return $lengthBag;
     }
 
     private function removingLineBreaks(string $line): string
@@ -99,6 +94,17 @@ class InspectCommand extends Command
 
     private function unwantedLine(string $line): bool
     {
-        return $line === '' OR $line === '<?php';
+        return $line === 'return;'
+            || $line === 'continue;'
+            || str_starts_with($line, '#')
+            || str_starts_with($line, '*')
+            || str_starts_with($line, '/*')
+            || str_starts_with($line, '//')
+            || str_starts_with($line, 'use');
+    }
+
+    private function lineIsTooShort(int $length): bool
+    {
+        return $length < 10;
     }
 }

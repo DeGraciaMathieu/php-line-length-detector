@@ -45,5 +45,5 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
-    "bin": ["line-length-detector"]
+    "bin": ["php-line-length-detector"]
 }

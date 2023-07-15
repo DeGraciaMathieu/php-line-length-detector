@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => 'Line-length-detector',
+    'name' => 'Php-line-length-detector',
 
     /*
     |--------------------------------------------------------------------------
