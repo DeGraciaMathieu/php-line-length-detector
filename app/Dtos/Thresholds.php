@@ -7,10 +7,10 @@ namespace App\Dtos;
 class Thresholds
 {
     public function __construct(
-        public $values = [],
+        public array $values = [],
     ) {}
 
-    public static function fromCommand(string $thresholds): self
+    public static function fromString(string $thresholds): self
     {
         $thresholds = explode(',', $thresholds);
 

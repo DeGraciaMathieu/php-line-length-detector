@@ -57,7 +57,7 @@ class InspectCommand extends Command
     private function getLengthBagFromFiles(Generator $files): LengthBag
     {
         $lengthBag = new LengthBag(
-            Thresholds::fromCommand($this->option('thresholds'))
+            Thresholds::fromString($this->option('thresholds'))
         );
 
         foreach ($files as $file) {
