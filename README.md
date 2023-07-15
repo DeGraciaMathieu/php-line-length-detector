@@ -1,40 +1,77 @@
-<a href="https://supportukrainenow.org/"><img src="https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner-direct.svg" width="100%"></a>
-
-------
-
 <p align="center">
-    <img title="Laravel Zero" height="100" src="https://raw.githubusercontent.com/laravel-zero/docs/master/images/logo/laravel-zero-readme.png" />
+<img src="https://github.com/DeGraciaMathieu/php-smelly-code-detector/blob/master/arts/robot.png" width="250">
 </p>
 
-<p align="center">
-  <a href="https://github.com/laravel-zero/framework/actions"><img src="https://github.com/laravel-zero/laravel-zero/actions/workflows/tests.yml/badge.svg" alt="Build Status"></img></a>
-  <a href="https://packagist.org/packages/laravel-zero/framework"><img src="https://img.shields.io/packagist/dt/laravel-zero/framework.svg" alt="Total Downloads"></a>
-  <a href="https://packagist.org/packages/laravel-zero/framework"><img src="https://img.shields.io/packagist/v/laravel-zero/framework.svg?label=stable" alt="Latest Stable Version"></a>
-  <a href="https://packagist.org/packages/laravel-zero/framework"><img src="https://img.shields.io/packagist/l/laravel-zero/framework.svg" alt="License"></a>
-</p>
+[![testing](https://github.com/DeGraciaMathieu/php-line-length-detector/actions/workflows/testing.yml/badge.svg)](https://github.com/DeGraciaMathieu/php-line-length-detector/actions/workflows/testing.yml)
+![Packagist Version](https://img.shields.io/packagist/v/degraciamathieu/php-line-length-detector)
+![Packagist PHP Version](https://img.shields.io/packagist/dependency-v/degraciamathieu/php-line-length-detector/php)
 
-<h4> <center>This is a <bold>community project</bold> and not an official Laravel one </center></h4>
+# php-line-length-detector
 
-Laravel Zero was created by [Nuno Maduro](https://github.com/nunomaduro) and [Owen Voke](https://github.com/owenvoke), and is a micro-framework that provides an elegant starting point for your console application. It is an **unofficial** and customized version of Laravel optimized for building command-line applications.
+A simple way to analyze the line length of your PHP files.
 
-- Built on top of the [Laravel](https://laravel.com) components.
-- Optional installation of Laravel [Eloquent](https://laravel-zero.com/docs/database/), Laravel [Logging](https://laravel-zero.com/docs/logging/) and many others.
-- Supports interactive [menus](https://laravel-zero.com/docs/build-interactive-menus/) and [desktop notifications](https://laravel-zero.com/docs/send-desktop-notifications/) on Linux, Windows & MacOS.
-- Ships with a [Scheduler](https://laravel-zero.com/docs/task-scheduling/) and  a [Standalone Compiler](https://laravel-zero.com/docs/build-a-standalone-application/).
-- Integration with [Collision](https://github.com/nunomaduro/collision) - Beautiful error reporting
+# Installation
 
-------
+```
+Requires >= PHP 8.1
+```
 
-## Documentation
+## Phar
+This tool is distributed as a [PHP Archive (PHAR)](https://www.php.net/phar):
 
-For full documentation, visit [laravel-zero.com](https://laravel-zero.com/).
+```
+wget https://github.com/DeGraciaMathieu/php-line-length-detector/raw/master/builds/php-line-length-detector
+```
 
-## Support the development
-**Do you like this project? Support it by donating**
+```
+php php-line-length-detector --version
+```
 
-- PayPal: [Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=66BYDWAT92N6L)
-- Patreon: [Donate](https://www.patreon.com/nunomaduro)
+## Composer
+Alternately, you can directly use composer :
 
-## License
+```
+composer require degraciamathieu/php-line-length-detector --dev
+```
+# Usage
 
-Laravel Zero is an open-source software licensed under the MIT license.
+```
+php php-line-length-detector inspect {path}
+```
+
+```
+$ php php-line-length-detector inspect app
+
+❀ PHP Line Lenght Detector ❀
++-------------+--------------+--------------+
+| total lines | largest line | average line |
++-------------+--------------+--------------+
+| 1068        | 197          | 37           |
++-------------+--------------+--------------+
++--------+------------+---------+
+| length | occurrence | percent |
++--------+------------+---------+
+| > 160  | 2          | 0 %     |
+| > 120  | 5          | 0 %     |
+| > 80   | 29         | 2 %     |
+| > 60   | 111        | 10 %    |
+| > 30   | 618        | 57 %    |
++--------+------------+---------+
+```
+You can configure thresholds with the `--thresholds=` option (default : 160,120,80,60,30) :
+```
+$ php php-line-length-detector inspect app --thresholds=120,60
+
+❀ PHP Line Lenght Detector ❀
++-------------+--------------+--------------+
+| total lines | largest line | average line |
++-------------+--------------+--------------+
+| 1068        | 197          | 37           |
++-------------+--------------+--------------+
++--------+------------+---------+
+| length | occurrence | percent |
++--------+------------+---------+
+| > 120  | 5          | 0 %     |
+| > 60   | 111        | 10 %    |
++--------+------------+---------+
+```
