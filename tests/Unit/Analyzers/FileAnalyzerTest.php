@@ -34,8 +34,8 @@ class FileAnalyzerTest extends TestCase
         ]);
 
         $this->assertEquals([
-            new Line('sample.php', 3, 12),
-            new Line('sample.php', 5, 35),
+            new Line('sample.php', 3, 12, 'class Sample'),
+            new Line('sample.php', 5, 35, 'public function short(): string'),
         ], $lines);
     }
 

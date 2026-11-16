@@ -61,7 +61,7 @@
                 <th>lines</th>
                 <th>largest line</th>
                 <th>average line</th>
-                @if($fileBag->hasMax())
+                @if($fileBag->tracksExceeded())
                 <th>exceeded</th>
                 @endif
             </tr>
@@ -72,7 +72,7 @@
             <td>{{ $summary->count }}</td>
             <td>{{ $summary->max }}</td>
             <td>{{ App\Helper::numberFormat($summary->average) }}</td>
-            @if($fileBag->hasMax())
+            @if($fileBag->tracksExceeded())
             <td>{{ $summary->exceeded }}</td>
             @endif
         </tr>
