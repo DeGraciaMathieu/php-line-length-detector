@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="581" viewBox="0 0 660 581" role="img" aria-label="php-line-length-detector inspect app --max=100 --top=3 output">
+<style>text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;fill:#d4d4d4;white-space:pre}.b{font-weight:bold;fill:#ffffff}.g{fill:#4ec98f}.p{fill:#569cd6}.r{fill:#f48771}.d{fill:#8a8a8a}</style>
+<rect width="660" height="581" rx="10" fill="#1e1e1e"/>
+<circle cx="22" cy="20" r="6" fill="#ff5f57"/><circle cx="42" cy="20" r="6" fill="#febc2e"/><circle cx="62" cy="20" r="6" fill="#28c840"/>
+<text x="20" y="48"><tspan class="p">$</tspan><tspan>&#160;php&#160;php-line-length-detector&#160;inspect&#160;app&#160;--max=100&#160;--top=3</tspan></text>
+<text x="20" y="67"></text>
+<text x="20" y="86"><tspan class="g">❀&#160;PHP&#160;Line&#160;Length&#160;Detector&#160;❀</tspan></text>
+<text x="20" y="105"><tspan>+-------------+--------------+--------------+--------+-----+-----+</tspan></text>
+<text x="20" y="124"><tspan class="d">|</tspan><tspan>&#160;</tspan><tspan class="b">total&#160;lines</tspan><tspan>&#160;</tspan><tspan class="d">|</tspan><tspan>&#160;</tspan><tspan class="b">largest&#160;line</tspan><tspan>&#160;</tspan><tspan class="d">|</tspan><tspan>&#160;</tspan><tspan class="b">average&#160;line</tspan><tspan>&#160;</tspan><tspan class="d">|</tspan><tspan>&#160;</tspan><tspan class="b">median</tspan><tspan>&#160;</tspan><tspan class="d">|</tspan><tspan>&#160;</tspan><tspan class="b">p90</tspan><tspan>&#160;</tspan><tspan class="d">|</tspan><tspan>&#160;</tspan><tspan class="b">p95</tspan><tspan>&#160;</tspan><tspan class="d">|</tspan></text>
+<text x="20" y="143"><tspan>+-------------+--------------+--------------+--------+-----+-----+</tspan></text>
+<text x="20" y="162"><tspan>|&#160;508&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;|&#160;127&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;|&#160;47.4&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;|&#160;44&#160;&#160;&#160;&#160;&#160;|&#160;78&#160;&#160;|&#160;89&#160;&#160;|</tspan></text>
+<text x="20" y="181"><tspan>+-------------+--------------+--------------+--------+-----+-----+</tspan></text>
+<text x="20" y="200"><tspan>+--------+------------+---------+</tspan></text>
+<text x="20" y="219"><tspan>|&#160;</tspan><tspan class="b">length</tspan><tspan>&#160;|&#160;</tspan><tspan class="b">occurrence</tspan><tspan>&#160;|&#160;</tspan><tspan class="b">percent</tspan><tspan>&#160;|</tspan></text>
+<text x="20" y="238"><tspan>+--------+------------+---------+</tspan></text>
+<text x="20" y="257"><tspan>|&#160;&gt;&#160;160&#160;&#160;|&#160;0&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;|&#160;0.0&#160;%&#160;&#160;&#160;|</tspan></text>
+<text x="20" y="276"><tspan>|&#160;&gt;&#160;120&#160;&#160;|&#160;2&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;|&#160;0.4&#160;%&#160;&#160;&#160;|</tspan></text>
+<text x="20" y="295"><tspan>|&#160;&gt;&#160;80&#160;&#160;&#160;|&#160;43&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;|&#160;8.5&#160;%&#160;&#160;&#160;|</tspan></text>
+<text x="20" y="314"><tspan>|&#160;&gt;&#160;60&#160;&#160;&#160;|&#160;118&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;|&#160;23.2&#160;%&#160;&#160;|</tspan></text>
+<text x="20" y="333"><tspan>|&#160;&gt;&#160;30&#160;&#160;&#160;|&#160;398&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;|&#160;78.3&#160;%&#160;&#160;|</tspan></text>
+<text x="20" y="352"><tspan>+--------+------------+---------+</tspan></text>
+<text x="20" y="371"><tspan>+----------------------------------+------+--------+</tspan></text>
+<text x="20" y="390"><tspan>|&#160;</tspan><tspan class="b">file</tspan><tspan>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;|&#160;</tspan><tspan class="b">line</tspan><tspan>&#160;|&#160;</tspan><tspan class="b">length</tspan><tspan>&#160;|</tspan></text>
+<text x="20" y="409"><tspan>+----------------------------------+------+--------+</tspan></text>
+<text x="20" y="428"><tspan>|&#160;app/Renderers/GithubRenderer.php&#160;|&#160;25&#160;&#160;&#160;|&#160;127&#160;&#160;&#160;&#160;|</tspan></text>
+<text x="20" y="447"><tspan>|&#160;app/Commands/InspectCommand.php&#160;&#160;|&#160;178&#160;&#160;|&#160;125&#160;&#160;&#160;&#160;|</tspan></text>
+<text x="20" y="466"><tspan>|&#160;app/Commands/InspectCommand.php&#160;&#160;|&#160;205&#160;&#160;|&#160;120&#160;&#160;&#160;&#160;|</tspan></text>
+<text x="20" y="485"><tspan>+----------------------------------+------+--------+</tspan></text>
+<text x="20" y="504"></text>
+<text x="20" y="523"><tspan class="p">$</tspan><tspan>&#160;echo&#160;$?</tspan></text>
+<text x="20" y="542"><tspan class="r">1</tspan></text>
+</svg>
