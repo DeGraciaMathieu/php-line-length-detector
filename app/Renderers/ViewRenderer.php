@@ -7,6 +7,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Illuminate\Contracts\View\View as ViewContract;
 use Illuminate\View\Factory as ViewFactory;
 use App\Bags\LengthBag;
+use App\Bags\ExceededLineBag;
 
 class ViewRenderer
 {
@@ -15,17 +16,19 @@ class ViewRenderer
         private HtmlRenderer $htmlRenderer,
     ) {}
 
-    public function display(LengthBag $lengthBag): void
+    public function display(LengthBag $lengthBag, ?ExceededLineBag $exceededLineBag, ?int $top): void
     {
-        $html = $this->makeHtml($lengthBag);
+        $html = $this->makeHtml($lengthBag, $exceededLineBag, $top);
 
         $this->renderHtml($html);
     }
 
-    protected function makeHtml(LengthBag $lengthBag): ViewContract
+    protected function makeHtml(LengthBag $lengthBag, ?ExceededLineBag $exceededLineBag, ?int $top): ViewContract
     {
         return $this->view->make('inspect', [
             'lengthBag' => $lengthBag,
+            'exceededLineBag' => $exceededLineBag,
+            'top' => $top,
         ]);
     }
 

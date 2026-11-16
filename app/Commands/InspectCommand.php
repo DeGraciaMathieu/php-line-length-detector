@@ -8,6 +8,8 @@ use Generator;
 use LaravelZero\Framework\Commands\Command;
 use DeGraciaMathieu\FileExplorer\FileFinder;
 use App\Bags\LengthBag;
+use App\Bags\ExceededLineBag;
+use App\Dtos\Line;
 use App\Dtos\Thresholds;
 use App\Renderers\ViewRenderer;
 
@@ -18,7 +20,7 @@ class InspectCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'inspect {path} {--thresholds=160,120,80,60,30}';
+    protected $signature = 'inspect {path} {--thresholds=160,120,80,60,30} {--max=} {--top=}';
 
     /**
      * The description of the command.
@@ -30,15 +32,45 @@ class InspectCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(): void
+    public function handle(): int
     {
         $this->info('❀ PHP Line Lenght Detector ❀');
 
         $files = $this->getFilesFromPath();
 
-        $lengthBag = $this->getLengthBagFromFiles($files);
+        $lengthBag = new LengthBag(
+            Thresholds::fromString($this->option('thresholds'))
+        );
 
-        app(ViewRenderer::class)->display($lengthBag);
+        $exceededLineBag = $this->makeExceededLineBag();
+
+        $this->analyseFiles($files, $lengthBag, $exceededLineBag);
+
+        app(ViewRenderer::class)->display($lengthBag, $exceededLineBag, $this->getTop());
+
+        if ($exceededLineBag?->isEmpty() === false) {
+            return self::FAILURE;
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function makeExceededLineBag(): ?ExceededLineBag
+    {
+        $max = $this->option('max');
+
+        if ($max === null) {
+            return null;
+        }
+
+        return new ExceededLineBag((int) $max);
+    }
+
+    private function getTop(): ?int
+    {
+        $top = $this->option('top');
+
+        return $top === null ? null : (int) $top;
     }
 
     private function getFilesFromPath(): Generator
@@ -54,17 +86,13 @@ class InspectCommand extends Command
         );
     }
 
-    private function getLengthBagFromFiles(Generator $files): LengthBag
+    private function analyseFiles(Generator $files, LengthBag $lengthBag, ?ExceededLineBag $exceededLineBag): void
     {
-        $lengthBag = new LengthBag(
-            Thresholds::fromString($this->option('thresholds'))
-        );
-
         foreach ($files as $file) {
 
             $lines = file($file->fullPath);
 
-            foreach ($lines as $line) {
+            foreach ($lines as $index => $line) {
 
                 $line = trim($line);
 
@@ -81,10 +109,12 @@ class InspectCommand extends Command
                 }
 
                 $lengthBag->add($length);
+
+                $exceededLineBag?->add(
+                    new Line($file->displayPath, $index + 1, $length),
+                );
             }
         }
-
-        return $lengthBag;
     }
 
     private function removingLineBreaks(string $line): string

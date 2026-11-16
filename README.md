@@ -75,3 +75,16 @@ $ php php-line-length-detector inspect app --thresholds=120,60
 | > 60   | 111        | 10 %    |
 +--------+------------+---------+
 ```
+
+Use the `--max=` option to list the lines exceeding a length, longest first. The command fails (exit code `1`) if at least one line exceeds it, which makes it usable in CI. Limit the list with `--top=` :
+```
+$ php php-line-length-detector inspect app --max=80 --top=3
+
++---------------------------------+------+--------+
+| file                            | line | length |
++---------------------------------+------+--------+
+| app/Commands/InspectCommand.php | 89   | 110    |
+| app/Renderers/ViewRenderer.php  | 26   | 109    |
+| app/Renderers/ViewRenderer.php  | 19   | 97     |
++---------------------------------+------+--------+
+```
