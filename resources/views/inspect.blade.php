@@ -32,4 +32,22 @@
         </tr>
         @endforeach()
     </table>
+    @if($exceededLineBag && ! $exceededLineBag->isEmpty())
+    <table>
+        <thead>
+            <tr>
+                <th>file</th>
+                <th>line</th>
+                <th>length</th>
+            </tr>
+        </thead>
+        @foreach($exceededLineBag->getLongest($top) as $line)
+        <tr>
+            <td>{{ $line->file }}</td>
+            <td>{{ $line->number }}</td>
+            <td>{{ $line->length }}</td>
+        </tr>
+        @endforeach()
+    </table>
+    @endif
 </div>
