@@ -13,6 +13,13 @@ class LengthBag
     private int $max = 0;
 
     /**
+     * Number of lines by length.
+     *
+     * @var array<int, int>
+     */
+    private array $histogram = [];
+
+    /**
      * @var array<int, int>
      */
     private array $thresholdCounts;
@@ -30,6 +37,7 @@ class LengthBag
         $this->count++;
         $this->sum += $length;
         $this->max = max($this->max, $length);
+        $this->histogram[$length] = ($this->histogram[$length] ?? 0) + 1;
     }
 
     public function getCount(): int
@@ -37,13 +45,49 @@ class LengthBag
         return $this->count;
     }
 
-    public function getAverage(): int
+    public function getAverage(): float
     {
         if ($this->count === 0) {
             return 0;
         }
 
-        return intdiv($this->sum, $this->count);
+        return $this->sum / $this->count;
+    }
+
+    public function getMedian(): int
+    {
+        return $this->getPercentile(50);
+    }
+
+    /**
+     * Nearest-rank method: the smallest length that covers $percentile % of the lines.
+     */
+    public function getPercentile(int $percentile): int
+    {
+        $rank = (int) ceil($percentile / 100 * $this->count);
+
+        ksort($this->histogram);
+
+        $covered = 0;
+
+        foreach ($this->histogram as $length => $count) {
+            $covered += $count;
+
+            if ($covered >= $rank) {
+                return $length;
+            }
+        }
+
+        return 0;
+    }
+
+    public function getThresholdPercent(int $threshold): float
+    {
+        if ($this->count === 0) {
+            return 0;
+        }
+
+        return ($this->thresholdCounts[$threshold] ?? 0) * 100 / $this->count;
     }
 
     public function getMax(): int

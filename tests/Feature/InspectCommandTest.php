@@ -13,7 +13,7 @@ class InspectCommandTest extends TestCase
     public function it_displays_the_summary(): void
     {
         $this->artisan('inspect ' . self::FIXTURES)
-            ->expectsOutputToContain('| 3           | 70           | 39           |')
+            ->expectsOutputToContain('| 3           | 70           | 39.0         | 35     | 70  | 70  |')
             ->assertSuccessful();
     }
 
@@ -22,8 +22,8 @@ class InspectCommandTest extends TestCase
     {
         $this->artisan('inspect ' . self::FIXTURES . ' --thresholds=60,30')
             ->expectsOutputToContain(
-                '| > 60   | 1          | 33 %    |' . PHP_EOL
-                . '| > 30   | 2          | 66 %    |'
+                '| > 60   | 1          | 33.3 %  |' . PHP_EOL
+                . '| > 30   | 2          | 66.7 %  |'
             )
             ->doesntExpectOutputToContain('> 80')
             ->assertSuccessful();
@@ -98,7 +98,7 @@ class InspectCommandTest extends TestCase
     public function it_can_ignore_the_indentation(): void
     {
         $this->artisan('inspect ' . self::FIXTURES . ' --without-indentation')
-            ->expectsOutputToContain('| 3           | 62           | 35           |')
+            ->expectsOutputToContain('| 3           | 62           | 35.0         | 31     | 62  | 62  |')
             ->assertSuccessful();
     }
 
@@ -122,7 +122,7 @@ class InspectCommandTest extends TestCase
     public function it_can_display_a_summary_by_file(): void
     {
         $this->artisan('inspect ' . self::FIXTURES . ' --by-file --max=69')
-            ->expectsOutputToContain('| tests/Fixtures/Sample.php | 3     | 70           | 39           | 1        |')
+            ->expectsOutputToContain('| tests/Fixtures/Sample.php | 3     | 70           | 39.0         | 1        |')
             ->assertFailed();
     }
 }
