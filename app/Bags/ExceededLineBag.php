@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Bags;
 
 use App\Dtos\Line;
+use App\Baselines\Baseline;
 
 class ExceededLineBag
 {
@@ -15,13 +16,25 @@ class ExceededLineBag
 
     public function __construct(
         private readonly int $max,
+        private readonly ?Baseline $baseline = null,
     ) {}
 
-    public function add(Line $line): void
+    /**
+     * Returns whether the line is kept as exceeded, lines known by the baseline are not.
+     */
+    public function add(Line $line): bool
     {
-        if ($line->length > $this->max) {
-            $this->items[] = $line;
+        if ($line->length <= $this->max) {
+            return false;
         }
+
+        if ($this->baseline?->consume($line)) {
+            return false;
+        }
+
+        $this->items[] = $line;
+
+        return true;
     }
 
     public function getMax(): int

@@ -11,6 +11,7 @@ use LaravelZero\Framework\Commands\Command;
 use DeGraciaMathieu\FileExplorer\File;
 use DeGraciaMathieu\FileExplorer\FileFinder;
 use App\Analyzers\FileAnalyzer;
+use App\Baselines\Baseline;
 use App\Bags\LengthBag;
 use App\Bags\ExceededLineBag;
 use App\Bags\FileBag;
@@ -41,7 +42,9 @@ class InspectCommand extends Command
         {--include-comments : Analyze comments too}
         {--exclude=* : Skip files whose absolute path matches this regex}
         {--by-file : Display a summary by file}
-        {--format=text : Output format: text, json, checkstyle or github}';
+        {--format=text : Output format: text, json, checkstyle or github}
+        {--baseline= : Ignore the exceeded lines listed in this baseline file}
+        {--generate-baseline= : Write the current exceeded lines into this baseline file}';
 
     /**
      * The description of the command.
@@ -64,6 +67,7 @@ class InspectCommand extends Command
             $fileBag = $this->makeFileBag();
             $top = $this->getIntegerOption('top');
             $fileAnalyzer = $this->makeFileAnalyzer();
+            $baselinePath = $this->getBaselinePathToGenerate();
         } catch (InvalidArgumentException $e) {
             $this->writeError("<error>{$e->getMessage()}</error>");
 
@@ -79,6 +83,10 @@ class InspectCommand extends Command
         $lengthBag = new LengthBag($thresholds);
 
         $this->analyseFiles($fileAnalyzer, $files, $lengthBag, $exceededLineBag, $fileBag);
+
+        if ($baselinePath !== null && $exceededLineBag !== null) {
+            return $this->generateBaseline($baselinePath, $exceededLineBag);
+        }
 
         if ($lengthBag->getCount() === 0 && $format === Format::Text) {
             $this->warn('No line to analyze.');
@@ -178,13 +186,63 @@ class InspectCommand extends Command
 
     private function makeExceededLineBag(): ?ExceededLineBag
     {
+        $baseline = $this->getBaseline();
+
         $max = $this->getIntegerOption('max');
 
         if ($max === null) {
             return null;
         }
 
-        return new ExceededLineBag($max);
+        return new ExceededLineBag($max, $baseline);
+    }
+
+    private function getBaseline(): ?Baseline
+    {
+        $path = $this->getStringOption('baseline');
+
+        if ($path === null || $this->getStringOption('generate-baseline') !== null) {
+            return null;
+        }
+
+        $this->ensureMaxIsGiven('baseline');
+
+        return Baseline::fromFile($path);
+    }
+
+    private function getBaselinePathToGenerate(): ?string
+    {
+        $path = $this->getStringOption('generate-baseline');
+
+        if ($path !== null) {
+            $this->ensureMaxIsGiven('generate-baseline');
+        }
+
+        return $path;
+    }
+
+    private function ensureMaxIsGiven(string $option): void
+    {
+        if ($this->option('max') === null) {
+            throw new InvalidArgumentException("The --$option option requires the --max option.");
+        }
+    }
+
+    private function generateBaseline(string $path, ExceededLineBag $exceededLineBag): int
+    {
+        $lines = $exceededLineBag->getLongest();
+
+        try {
+            Baseline::fromLines($lines)->save($path);
+        } catch (InvalidArgumentException $e) {
+            $this->writeError("<error>{$e->getMessage()}</error>");
+
+            return self::FAILURE;
+        }
+
+        $this->writeError('<info>Baseline generated in [' . $path . '] with ' . count($lines) . ' lines.</info>');
+
+        return self::SUCCESS;
     }
 
     private function getStringOption(string $name): ?string
@@ -214,7 +272,7 @@ class InspectCommand extends Command
             return null;
         }
 
-        return new FileBag($this->getIntegerOption('max'));
+        return new FileBag(tracksExceeded: $this->option('max') !== null);
     }
 
     private function getIntegerOption(string $name, int $min = 1): ?int
@@ -263,8 +321,8 @@ class InspectCommand extends Command
             try {
                 foreach ($fileAnalyzer->getLines($file) as $line) {
                     $lengthBag->add($line->length);
-                    $exceededLineBag?->add($line);
-                    $fileBag?->add($line);
+                    $exceeded = $exceededLineBag?->add($line) ?? false;
+                    $fileBag?->add($line, $exceeded);
                 }
             } catch (RuntimeException $e) {
                 $this->writeError("<comment>{$e->getMessage()}</comment>");

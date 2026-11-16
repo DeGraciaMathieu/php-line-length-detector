@@ -13,10 +13,10 @@ class FileBagTest extends TestCase
     #[Test]
     public function it_summarizes_lines_by_file(): void
     {
-        $fileBag = new FileBag(max: 30);
+        $fileBag = new FileBag(tracksExceeded: true);
 
         $fileBag->add(new Line('a.php', 1, 20));
-        $fileBag->add(new Line('a.php', 2, 40));
+        $fileBag->add(new Line('a.php', 2, 40), exceeded: true);
         $fileBag->add(new Line('b.php', 1, 10));
 
         $this->assertEquals([
@@ -28,13 +28,13 @@ class FileBagTest extends TestCase
     #[Test]
     public function it_sorts_by_exceeded_lines_then_by_longest_line(): void
     {
-        $fileBag = new FileBag(max: 30);
+        $fileBag = new FileBag(tracksExceeded: true);
 
-        $fileBag->add(new Line('a.php', 1, 90));
-        $fileBag->add(new Line('b.php', 1, 40));
-        $fileBag->add(new Line('b.php', 2, 40));
-        $fileBag->add(new Line('c.php', 1, 50));
-        $fileBag->add(new Line('c.php', 2, 50));
+        $fileBag->add(new Line('a.php', 1, 90), exceeded: true);
+        $fileBag->add(new Line('b.php', 1, 40), exceeded: true);
+        $fileBag->add(new Line('b.php', 2, 40), exceeded: true);
+        $fileBag->add(new Line('c.php', 1, 50), exceeded: true);
+        $fileBag->add(new Line('c.php', 2, 50), exceeded: true);
 
         $files = array_map(
             fn (FileSummary $summary) => $summary->file,
@@ -53,6 +53,6 @@ class FileBagTest extends TestCase
         $fileBag->add(new Line('b.php', 1, 30));
 
         $this->assertCount(1, $fileBag->getSummaries(1));
-        $this->assertFalse($fileBag->hasMax());
+        $this->assertFalse($fileBag->tracksExceeded());
     }
 }

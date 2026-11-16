@@ -41,7 +41,7 @@ class FileAnalyzer
 
             $length = $this->measure($this->withIndentation ? $line : $content);
 
-            yield new Line($file->displayPath, $index + 1, $length);
+            yield new Line($file->displayPath, $index + 1, $length, $content);
         }
     }
 

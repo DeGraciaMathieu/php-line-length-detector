@@ -150,4 +150,28 @@ class InspectCommandTest extends TestCase
             ->expectsOutput('The checkstyle format requires the --max option.')
             ->assertExitCode(2);
     }
+
+    #[Test]
+    public function it_ignores_the_lines_of_a_generated_baseline(): void
+    {
+        $path = sys_get_temp_dir() . '/baseline-' . uniqid() . '.json';
+
+        $this->artisan('inspect ' . self::FIXTURES . " --max=34 --generate-baseline=$path")
+            ->expectsOutput("Baseline generated in [$path] with 2 lines.")
+            ->assertSuccessful();
+
+        $this->artisan('inspect ' . self::FIXTURES . " --max=34 --baseline=$path")
+            ->doesntExpectOutputToContain('Sample.php')
+            ->assertSuccessful();
+
+        unlink($path);
+    }
+
+    #[Test]
+    public function it_requires_max_for_the_baseline(): void
+    {
+        $this->artisan('inspect ' . self::FIXTURES . ' --baseline=baseline.json')
+            ->expectsOutput('The --baseline option requires the --max option.')
+            ->assertExitCode(2);
+    }
 }

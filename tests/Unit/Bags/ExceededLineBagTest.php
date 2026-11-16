@@ -6,6 +6,7 @@ use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use App\Dtos\Line;
 use App\Bags\ExceededLineBag;
+use App\Baselines\Baseline;
 
 class ExceededLineBagTest extends TestCase
 {
@@ -63,5 +64,17 @@ class ExceededLineBagTest extends TestCase
         $exceededLineBag->add(new Line('a.php', 1, 20));
 
         $this->assertFalse($exceededLineBag->isEmpty());
+    }
+
+    #[Test]
+    public function it_ignores_the_lines_known_by_the_baseline(): void
+    {
+        $baseline = Baseline::fromLines([new Line('a.php', 1, 20, '$known = 1;')]);
+
+        $exceededLineBag = new ExceededLineBag(10, $baseline);
+
+        $this->assertFalse($exceededLineBag->add(new Line('a.php', 5, 20, '$known = 1;')));
+        $this->assertTrue($exceededLineBag->add(new Line('a.php', 6, 20, '$new = 1;')));
+        $this->assertCount(1, $exceededLineBag->getLongest());
     }
 }
