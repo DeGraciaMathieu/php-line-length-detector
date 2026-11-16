@@ -10,7 +10,7 @@ class FileSummary
         public readonly string $file,
         public readonly int $count,
         public readonly int $max,
-        public readonly int $average,
+        public readonly float $average,
         public readonly int $exceeded,
     ) {}
 }

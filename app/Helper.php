@@ -6,8 +6,8 @@ namespace App;
 
 class Helper
 {
-    public static function numberFormat(int $value): string
+    public static function numberFormat(float $value, int $decimals = 1): string
     {
-        return number_format($value, 0, ',', ' ');
+        return number_format($value, $decimals);
     }
 }

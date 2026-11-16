@@ -52,7 +52,7 @@ class FileBag
                 file: $path,
                 count: $file['count'],
                 max: $file['max'],
-                average: intdiv($file['sum'], $file['count']),
+                average: $file['sum'] / $file['count'],
                 exceeded: $file['exceeded'],
             );
         }
