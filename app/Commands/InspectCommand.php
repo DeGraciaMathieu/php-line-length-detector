@@ -23,7 +23,7 @@ class InspectCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'inspect {path} {--thresholds=160,120,80,60,30} {--max=} {--top=}';
+    protected $signature = 'inspect {path} {--thresholds=160,120,80,60,30} {--max=} {--top=} {--without-indentation} {--tab-width=4} {--min-length=10} {--include-comments}';
 
     /**
      * The description of the command.
@@ -43,7 +43,8 @@ class InspectCommand extends Command
             $paths = $this->getPaths();
             $thresholds = Thresholds::fromString($this->getStringOption('thresholds') ?? '');
             $exceededLineBag = $this->makeExceededLineBag();
-            $top = $this->getPositiveIntegerOption('top');
+            $top = $this->getIntegerOption('top');
+            $fileAnalyzer = $this->makeFileAnalyzer();
         } catch (InvalidArgumentException $e) {
             $this->error($e->getMessage());
 
@@ -54,7 +55,7 @@ class InspectCommand extends Command
 
         $lengthBag = new LengthBag($thresholds);
 
-        $this->analyseFiles($files, $lengthBag, $exceededLineBag);
+        $this->analyseFiles($fileAnalyzer, $files, $lengthBag, $exceededLineBag);
 
         if ($lengthBag->getCount() === 0) {
             $this->warn('No line to analyze.');
@@ -95,7 +96,7 @@ class InspectCommand extends Command
 
     private function makeExceededLineBag(): ?ExceededLineBag
     {
-        $max = $this->getPositiveIntegerOption('max');
+        $max = $this->getIntegerOption('max');
 
         if ($max === null) {
             return null;
@@ -115,7 +116,17 @@ class InspectCommand extends Command
         return $value;
     }
 
-    private function getPositiveIntegerOption(string $name): ?int
+    private function makeFileAnalyzer(): FileAnalyzer
+    {
+        return new FileAnalyzer(
+            withIndentation: ! $this->option('without-indentation'),
+            tabWidth: $this->getIntegerOption('tab-width') ?? 4,
+            minLength: $this->getIntegerOption('min-length', min: 0) ?? 10,
+            includeComments: (bool) $this->option('include-comments'),
+        );
+    }
+
+    private function getIntegerOption(string $name, int $min = 1): ?int
     {
         $value = $this->getStringOption($name);
 
@@ -123,8 +134,8 @@ class InspectCommand extends Command
             return null;
         }
 
-        if (! ctype_digit($value) || (int) $value === 0) {
-            throw new InvalidArgumentException("The --$name option must be a positive integer.");
+        if (! ctype_digit($value) || (int) $value < $min) {
+            throw new InvalidArgumentException("The --$name option must be an integer greater than or equal to $min.");
         }
 
         return (int) $value;
@@ -148,10 +159,12 @@ class InspectCommand extends Command
     /**
      * @param Generator<int, File> $files
      */
-    private function analyseFiles(Generator $files, LengthBag $lengthBag, ?ExceededLineBag $exceededLineBag): void
-    {
-        $fileAnalyzer = new FileAnalyzer();
-
+    private function analyseFiles(
+        FileAnalyzer $fileAnalyzer,
+        Generator $files,
+        LengthBag $lengthBag,
+        ?ExceededLineBag $exceededLineBag,
+    ): void {
         foreach ($files as $file) {
             try {
                 foreach ($fileAnalyzer->getLines($file) as $line) {
