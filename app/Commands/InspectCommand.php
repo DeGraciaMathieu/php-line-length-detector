@@ -12,6 +12,7 @@ use DeGraciaMathieu\FileExplorer\File;
 use DeGraciaMathieu\FileExplorer\FileFinder;
 use App\Analyzers\FileAnalyzer;
 use App\Baselines\Baseline;
+use App\Configs\ConfigFile;
 use App\Bags\LengthBag;
 use App\Bags\ExceededLineBag;
 use App\Bags\FileBag;
@@ -32,7 +33,7 @@ class InspectCommand extends Command
      * @var string
      */
     protected $signature = 'inspect
-        {path : Comma separated paths to analyze}
+        {path? : Comma separated paths to analyze, required unless set in the config file}
         {--thresholds=160,120,80,60,30 : Lengths to count lines against}
         {--max= : Fail if a line exceeds this length, and list those lines}
         {--top= : Limit the listed lines and files}
@@ -44,7 +45,8 @@ class InspectCommand extends Command
         {--by-file : Display a summary by file}
         {--format=text : Output format: text, json, checkstyle or github}
         {--baseline= : Ignore the exceeded lines listed in this baseline file}
-        {--generate-baseline= : Write the current exceeded lines into this baseline file}';
+        {--generate-baseline= : Write the current exceeded lines into this baseline file}
+        {--config= : Config file, php-line-length-detector.json in the current directory by default}';
 
     /**
      * The description of the command.
@@ -59,8 +61,9 @@ class InspectCommand extends Command
     public function handle(): int
     {
         try {
+            $config = $this->loadConfig();
             $format = $this->getFormat();
-            $paths = $this->getPaths();
+            $paths = $this->getPaths($config);
             $excludePatterns = $this->getExcludePatterns();
             $thresholds = Thresholds::fromString($this->getStringOption('thresholds') ?? '');
             $exceededLineBag = $this->makeExceededLineBag();
@@ -141,17 +144,39 @@ class InspectCommand extends Command
     }
 
     /**
+     * Fills the options missing from the command line with the config file ones.
+     */
+    private function loadConfig(): ConfigFile
+    {
+        $path = $this->getStringOption('config');
+
+        if ($path === null && ! file_exists(ConfigFile::DEFAULT_PATH)) {
+            return new ConfigFile();
+        }
+
+        $config = ConfigFile::fromFile($path ?? ConfigFile::DEFAULT_PATH);
+
+        foreach ($config->options as $name => $value) {
+            if ($name !== 'paths' && ! $this->input->hasParameterOption("--$name")) {
+                $this->input->setOption($name, $value);
+            }
+        }
+
+        return $config;
+    }
+
+    /**
      * @return list<string>
      */
-    private function getPaths(): array
+    private function getPaths(ConfigFile $config): array
     {
         $path = $this->argument('path');
 
-        if (! is_string($path)) {
-            throw new InvalidArgumentException('The path must be a string.');
-        }
-
-        $paths = explode(',', $path);
+        $paths = match (true) {
+            is_string($path) => explode(',', $path),
+            is_array($config->options['paths'] ?? null) => $config->options['paths'],
+            default => throw new InvalidArgumentException('No path to analyze, give one or set "paths" in the config file.'),
+        };
 
         foreach ($paths as $path) {
             if (! file_exists($path)) {

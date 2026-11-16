@@ -174,4 +174,29 @@ class InspectCommandTest extends TestCase
             ->expectsOutput('The --baseline option requires the --max option.')
             ->assertExitCode(2);
     }
+
+    #[Test]
+    public function it_reads_the_options_from_a_config_file(): void
+    {
+        $path = sys_get_temp_dir() . '/config-' . uniqid() . '.json';
+
+        file_put_contents($path, json_encode(['paths' => [self::FIXTURES], 'max' => 69]));
+
+        $this->artisan("inspect --config=$path")
+            ->expectsOutputToContain('| tests/Fixtures/Sample.php | 7    | 70     |')
+            ->assertFailed();
+
+        $this->artisan("inspect --config=$path --max=70")
+            ->assertSuccessful();
+
+        unlink($path);
+    }
+
+    #[Test]
+    public function it_requires_a_path(): void
+    {
+        $this->artisan('inspect')
+            ->expectsOutput('No path to analyze, give one or set "paths" in the config file.')
+            ->assertExitCode(2);
+    }
 }
