@@ -117,4 +117,12 @@ class InspectCommandTest extends TestCase
             ->expectsOutput('The exclude pattern [[] is not a valid regular expression.')
             ->assertExitCode(2);
     }
+
+    #[Test]
+    public function it_can_display_a_summary_by_file(): void
+    {
+        $this->artisan('inspect ' . self::FIXTURES . ' --by-file --max=69')
+            ->expectsOutputToContain('| tests/Fixtures/Sample.php | 3     | 70           | 39           | 1        |')
+            ->assertFailed();
+    }
 }

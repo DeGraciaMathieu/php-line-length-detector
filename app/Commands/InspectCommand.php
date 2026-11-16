@@ -13,6 +13,7 @@ use DeGraciaMathieu\FileExplorer\FileFinder;
 use App\Analyzers\FileAnalyzer;
 use App\Bags\LengthBag;
 use App\Bags\ExceededLineBag;
+use App\Bags\FileBag;
 use App\Dtos\Thresholds;
 use App\Renderers\ViewRenderer;
 
@@ -23,7 +24,17 @@ class InspectCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'inspect {path} {--thresholds=160,120,80,60,30} {--max=} {--top=} {--without-indentation} {--tab-width=4} {--min-length=10} {--include-comments} {--exclude=*}';
+    protected $signature = 'inspect
+        {path : Comma separated paths to analyze}
+        {--thresholds=160,120,80,60,30 : Lengths to count lines against}
+        {--max= : Fail if a line exceeds this length, and list those lines}
+        {--top= : Limit the listed lines and files}
+        {--without-indentation : Do not count the indentation}
+        {--tab-width=4 : Width of a tab}
+        {--min-length=10 : Ignore lines shorter than this, indentation excluded}
+        {--include-comments : Analyze comments too}
+        {--exclude=* : Skip files whose absolute path matches this regex}
+        {--by-file : Display a summary by file}';
 
     /**
      * The description of the command.
@@ -44,6 +55,7 @@ class InspectCommand extends Command
             $excludePatterns = $this->getExcludePatterns();
             $thresholds = Thresholds::fromString($this->getStringOption('thresholds') ?? '');
             $exceededLineBag = $this->makeExceededLineBag();
+            $fileBag = $this->makeFileBag();
             $top = $this->getIntegerOption('top');
             $fileAnalyzer = $this->makeFileAnalyzer();
         } catch (InvalidArgumentException $e) {
@@ -56,7 +68,7 @@ class InspectCommand extends Command
 
         $lengthBag = new LengthBag($thresholds);
 
-        $this->analyseFiles($fileAnalyzer, $files, $lengthBag, $exceededLineBag);
+        $this->analyseFiles($fileAnalyzer, $files, $lengthBag, $exceededLineBag, $fileBag);
 
         if ($lengthBag->getCount() === 0) {
             $this->warn('No line to analyze.');
@@ -64,7 +76,7 @@ class InspectCommand extends Command
             return self::SUCCESS;
         }
 
-        app(ViewRenderer::class)->display($lengthBag, $exceededLineBag, $top);
+        app(ViewRenderer::class)->display($lengthBag, $exceededLineBag, $fileBag, $top);
 
         if ($exceededLineBag?->isEmpty() === false) {
             return self::FAILURE;
@@ -149,6 +161,15 @@ class InspectCommand extends Command
         );
     }
 
+    private function makeFileBag(): ?FileBag
+    {
+        if (! $this->option('by-file')) {
+            return null;
+        }
+
+        return new FileBag($this->getIntegerOption('max'));
+    }
+
     private function getIntegerOption(string $name, int $min = 1): ?int
     {
         $value = $this->getStringOption($name);
@@ -189,12 +210,14 @@ class InspectCommand extends Command
         Generator $files,
         LengthBag $lengthBag,
         ?ExceededLineBag $exceededLineBag,
+        ?FileBag $fileBag,
     ): void {
         foreach ($files as $file) {
             try {
                 foreach ($fileAnalyzer->getLines($file) as $line) {
                     $lengthBag->add($line->length);
                     $exceededLineBag?->add($line);
+                    $fileBag?->add($line);
                 }
             } catch (RuntimeException $e) {
                 $this->warn($e->getMessage());
