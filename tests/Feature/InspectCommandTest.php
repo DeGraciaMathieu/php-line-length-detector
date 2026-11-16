@@ -125,4 +125,29 @@ class InspectCommandTest extends TestCase
             ->expectsOutputToContain('| tests/Fixtures/Sample.php | 3     | 70           | 39.0         | 1        |')
             ->assertFailed();
     }
+
+    #[Test]
+    public function it_can_render_json(): void
+    {
+        $this->artisan('inspect ' . self::FIXTURES . ' --format=json --max=69')
+            ->expectsOutputToContain('"file": "tests/Fixtures/Sample.php"')
+            ->doesntExpectOutputToContain('PHP Line Length Detector')
+            ->assertFailed();
+    }
+
+    #[Test]
+    public function it_rejects_an_unsupported_format(): void
+    {
+        $this->artisan('inspect ' . self::FIXTURES . ' --format=xml')
+            ->expectsOutput('The format [xml] is not supported.')
+            ->assertExitCode(2);
+    }
+
+    #[Test]
+    public function it_requires_max_for_the_checkstyle_format(): void
+    {
+        $this->artisan('inspect ' . self::FIXTURES . ' --format=checkstyle')
+            ->expectsOutput('The checkstyle format requires the --max option.')
+            ->assertExitCode(2);
+    }
 }

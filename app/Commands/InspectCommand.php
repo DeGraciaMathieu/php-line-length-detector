@@ -14,8 +14,14 @@ use App\Analyzers\FileAnalyzer;
 use App\Bags\LengthBag;
 use App\Bags\ExceededLineBag;
 use App\Bags\FileBag;
+use App\Dtos\Report;
 use App\Dtos\Thresholds;
+use App\Enums\Format;
+use App\Renderers\Renderer;
 use App\Renderers\ViewRenderer;
+use App\Renderers\JsonRenderer;
+use App\Renderers\CheckstyleRenderer;
+use App\Renderers\GithubRenderer;
 
 class InspectCommand extends Command
 {
@@ -34,7 +40,8 @@ class InspectCommand extends Command
         {--min-length=10 : Ignore lines shorter than this, indentation excluded}
         {--include-comments : Analyze comments too}
         {--exclude=* : Skip files whose absolute path matches this regex}
-        {--by-file : Display a summary by file}';
+        {--by-file : Display a summary by file}
+        {--format=text : Output format: text, json, checkstyle or github}';
 
     /**
      * The description of the command.
@@ -48,9 +55,8 @@ class InspectCommand extends Command
      */
     public function handle(): int
     {
-        $this->info('❀ PHP Line Length Detector ❀');
-
         try {
+            $format = $this->getFormat();
             $paths = $this->getPaths();
             $excludePatterns = $this->getExcludePatterns();
             $thresholds = Thresholds::fromString($this->getStringOption('thresholds') ?? '');
@@ -59,9 +65,13 @@ class InspectCommand extends Command
             $top = $this->getIntegerOption('top');
             $fileAnalyzer = $this->makeFileAnalyzer();
         } catch (InvalidArgumentException $e) {
-            $this->error($e->getMessage());
+            $this->writeError("<error>{$e->getMessage()}</error>");
 
             return self::INVALID;
+        }
+
+        if ($format === Format::Text) {
+            $this->info('❀ PHP Line Length Detector ❀');
         }
 
         $files = $this->getFilesFromPaths($paths, $excludePatterns);
@@ -70,19 +80,56 @@ class InspectCommand extends Command
 
         $this->analyseFiles($fileAnalyzer, $files, $lengthBag, $exceededLineBag, $fileBag);
 
-        if ($lengthBag->getCount() === 0) {
+        if ($lengthBag->getCount() === 0 && $format === Format::Text) {
             $this->warn('No line to analyze.');
 
             return self::SUCCESS;
         }
 
-        app(ViewRenderer::class)->display($lengthBag, $exceededLineBag, $fileBag, $top);
+        $this->makeRenderer($format)->display(
+            new Report($lengthBag, $exceededLineBag, $fileBag, $top),
+        );
 
         if ($exceededLineBag?->isEmpty() === false) {
             return self::FAILURE;
         }
 
         return self::SUCCESS;
+    }
+
+    private function getFormat(): Format
+    {
+        $value = $this->getStringOption('format') ?? '';
+
+        $format = Format::tryFrom($value);
+
+        if ($format === null) {
+            throw new InvalidArgumentException("The format [$value] is not supported.");
+        }
+
+        if ($format->requiresMax() && $this->option('max') === null) {
+            throw new InvalidArgumentException("The $value format requires the --max option.");
+        }
+
+        return $format;
+    }
+
+    private function makeRenderer(Format $format): Renderer
+    {
+        return match ($format) {
+            Format::Text => app(ViewRenderer::class),
+            Format::Json => new JsonRenderer($this->output),
+            Format::Checkstyle => new CheckstyleRenderer($this->output),
+            Format::Github => new GithubRenderer($this->output),
+        };
+    }
+
+    /**
+     * Messages go to stderr, so that they never corrupt a machine readable output.
+     */
+    private function writeError(string $message): void
+    {
+        $this->output->getErrorStyle()->writeln($message);
     }
 
     /**
@@ -220,7 +267,7 @@ class InspectCommand extends Command
                     $fileBag?->add($line);
                 }
             } catch (RuntimeException $e) {
-                $this->warn($e->getMessage());
+                $this->writeError("<comment>{$e->getMessage()}</comment>");
             }
         }
     }
