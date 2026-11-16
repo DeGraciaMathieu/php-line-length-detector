@@ -8,8 +8,11 @@ use InvalidArgumentException;
 
 class Thresholds
 {
+    /**
+     * @param list<int> $values
+     */
     public function __construct(
-        public array $values = [],
+        public readonly array $values = [],
     ) {}
 
     public static function fromString(string $thresholds): self
@@ -27,7 +30,7 @@ class Thresholds
         rsort($thresholds);
 
         return new self(
-            values: array_fill_keys($thresholds, 0),
+            values: $thresholds,
         );
     }
 }

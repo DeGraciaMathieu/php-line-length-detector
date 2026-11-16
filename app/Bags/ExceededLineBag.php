@@ -8,10 +8,13 @@ use App\Dtos\Line;
 
 class ExceededLineBag
 {
-    public array $items = [];
+    /**
+     * @var list<Line>
+     */
+    private array $items = [];
 
     public function __construct(
-        public int $max,
+        private readonly int $max,
     ) {}
 
     public function add(Line $line): void
@@ -26,6 +29,9 @@ class ExceededLineBag
         return $this->items === [];
     }
 
+    /**
+     * @return list<Line>
+     */
     public function getLongest(?int $top = null): array
     {
         $items = $this->items;

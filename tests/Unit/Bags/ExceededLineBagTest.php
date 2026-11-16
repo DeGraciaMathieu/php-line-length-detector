@@ -18,8 +18,10 @@ class ExceededLineBagTest extends TestCase
         $exceededLineBag->add(new Line('a.php', 2, 50));
         $exceededLineBag->add(new Line('a.php', 3, 51));
 
-        $this->assertCount(1, $exceededLineBag->items);
-        $this->assertSame(3, $exceededLineBag->items[0]->number);
+        $lines = $exceededLineBag->getLongest();
+
+        $this->assertCount(1, $lines);
+        $this->assertSame(3, $lines[0]->number);
     }
 
     #[Test]

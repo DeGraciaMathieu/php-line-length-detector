@@ -13,61 +13,52 @@ class LengthBagTest extends TestCase
     public function it_can_aggregate_values(): void
     {
         $lengthBag = new LengthBag(
-            new Thresholds([
-                '10' => 0,
-                '30' => 0,
-                '50' => 0,
-            ]),
+            new Thresholds([50, 30, 10]),
         );
 
         $lengthBag->add(5);
         $lengthBag->add(25);
         $lengthBag->add(55);
 
-        $items = $lengthBag->items;
-
-        $this->assertIsArray($items);
-        $this->assertCount(3, $items);
-        $this->assertSame(5, $items[0]);
+        $this->assertSame(3, $lengthBag->getCount());
 
         $this->assertSame([
-            '10' => 2,
-            '30' => 1,
-            '50' => 1,
-        ], $lengthBag->thresholds->values);
+            50 => 1,
+            30 => 1,
+            10 => 2,
+        ], $lengthBag->getThresholdCounts());
     }
 
     #[Test]
     public function it_can_find_the_max_value(): void
     {
-        $lengthBag = app(LengthBag::class);
+        $lengthBag = new LengthBag(new Thresholds());
 
         $lengthBag->add(10);
-        $lengthBag->add(30);
         $lengthBag->add(50);
+        $lengthBag->add(30);
 
-        $max = $lengthBag->getMax();
-
-        $this->assertSame(50, $max);
+        $this->assertSame(50, $lengthBag->getMax());
     }
 
     #[Test]
     public function it_can_calculate_the_average(): void
     {
-        $lengthBag = new LengthBag(
-            new Thresholds([
-                '10' => 0,
-                '30' => 0,
-                '50' => 0,
-            ]),
-        );
+        $lengthBag = new LengthBag(new Thresholds());
 
         $lengthBag->add(5);
         $lengthBag->add(25);
         $lengthBag->add(55);
 
-        $average = $lengthBag->getAverage();
+        $this->assertSame(28, $lengthBag->getAverage());
+    }
 
-        $this->assertSame(28, $average);
+    #[Test]
+    public function it_returns_zero_when_empty(): void
+    {
+        $lengthBag = new LengthBag(new Thresholds());
+
+        $this->assertSame(0, $lengthBag->getAverage());
+        $this->assertSame(0, $lengthBag->getMax());
     }
 }

@@ -6,11 +6,13 @@ namespace App\Commands;
 
 use Generator;
 use InvalidArgumentException;
+use RuntimeException;
 use LaravelZero\Framework\Commands\Command;
+use DeGraciaMathieu\FileExplorer\File;
 use DeGraciaMathieu\FileExplorer\FileFinder;
+use App\Analyzers\FileAnalyzer;
 use App\Bags\LengthBag;
 use App\Bags\ExceededLineBag;
-use App\Dtos\Line;
 use App\Dtos\Thresholds;
 use App\Renderers\ViewRenderer;
 
@@ -39,7 +41,7 @@ class InspectCommand extends Command
 
         try {
             $paths = $this->getPaths();
-            $thresholds = Thresholds::fromString($this->option('thresholds'));
+            $thresholds = Thresholds::fromString($this->getStringOption('thresholds') ?? '');
             $exceededLineBag = $this->makeExceededLineBag();
             $top = $this->getPositiveIntegerOption('top');
         } catch (InvalidArgumentException $e) {
@@ -54,7 +56,7 @@ class InspectCommand extends Command
 
         $this->analyseFiles($files, $lengthBag, $exceededLineBag);
 
-        if ($lengthBag->count === 0) {
+        if ($lengthBag->getCount() === 0) {
             $this->warn('No line to analyze.');
 
             return self::SUCCESS;
@@ -69,9 +71,18 @@ class InspectCommand extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * @return list<string>
+     */
     private function getPaths(): array
     {
-        $paths = explode(',', $this->argument('path'));
+        $path = $this->argument('path');
+
+        if (! is_string($path)) {
+            throw new InvalidArgumentException('The path must be a string.');
+        }
+
+        $paths = explode(',', $path);
 
         foreach ($paths as $path) {
             if (! file_exists($path)) {
@@ -93,9 +104,20 @@ class InspectCommand extends Command
         return new ExceededLineBag($max);
     }
 
-    private function getPositiveIntegerOption(string $name): ?int
+    private function getStringOption(string $name): ?string
     {
         $value = $this->option($name);
+
+        if ($value !== null && ! is_string($value)) {
+            throw new InvalidArgumentException("The --$name option must be a string.");
+        }
+
+        return $value;
+    }
+
+    private function getPositiveIntegerOption(string $name): ?int
+    {
+        $value = $this->getStringOption($name);
 
         if ($value === null) {
             return null;
@@ -108,10 +130,14 @@ class InspectCommand extends Command
         return (int) $value;
     }
 
+    /**
+     * @param list<string> $paths
+     * @return Generator<int, File>
+     */
     private function getFilesFromPaths(array $paths): Generator
     {
         $fileFinder = new FileFinder(
-            basePath: getcwd(),
+            basePath: getcwd() ?: '.',
         );
 
         return $fileFinder->getFiles(
@@ -119,61 +145,22 @@ class InspectCommand extends Command
         );
     }
 
+    /**
+     * @param Generator<int, File> $files
+     */
     private function analyseFiles(Generator $files, LengthBag $lengthBag, ?ExceededLineBag $exceededLineBag): void
     {
+        $fileAnalyzer = new FileAnalyzer();
+
         foreach ($files as $file) {
-
-            $lines = file($file->fullPath);
-
-            if ($lines === false) {
-                $this->warn("Unable to read [$file->displayPath].");
-
-                continue;
-            }
-
-            foreach ($lines as $index => $line) {
-
-                $line = trim($line);
-
-                $line = $this->removingLineBreaks($line);
-
-                if ($this->unwantedLine($line)) {
-                    continue;
+            try {
+                foreach ($fileAnalyzer->getLines($file) as $line) {
+                    $lengthBag->add($line->length);
+                    $exceededLineBag?->add($line);
                 }
-
-                $length = strlen($line);
-
-                if ($this->lineIsTooShort($length)) {
-                    continue;
-                }
-
-                $lengthBag->add($length);
-
-                $exceededLineBag?->add(
-                    new Line($file->displayPath, $index + 1, $length),
-                );
+            } catch (RuntimeException $e) {
+                $this->warn($e->getMessage());
             }
         }
-    }
-
-    private function removingLineBreaks(string $line): string
-    {
-        return preg_replace('~[\r\n]+~', '', $line);
-    }
-
-    private function unwantedLine(string $line): bool
-    {
-        return $line === 'return;'
-            || $line === 'continue;'
-            || str_starts_with($line, '#')
-            || str_starts_with($line, '*')
-            || str_starts_with($line, '/*')
-            || str_starts_with($line, '//')
-            || str_starts_with($line, 'use');
-    }
-
-    private function lineIsTooShort(int $length): bool
-    {
-        return $length < 10;
     }
 }

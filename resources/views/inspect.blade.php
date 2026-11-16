@@ -1,4 +1,3 @@
-@inject('helper', App\Helper::class)
 <div>
     <table>
         <thead>
@@ -9,7 +8,7 @@
             </tr>
         </thead>
         <tr>
-            <td>{{ $lengthBag->count }}</td>
+            <td>{{ $lengthBag->getCount() }}</td>
             <td>{{ $lengthBag->getMax() }}</td>
             <td>{{ $lengthBag->getAverage() }}</td>
         </tr>
@@ -22,12 +21,12 @@
                 <th>percent</th>
             </tr>
         </thead>
-        @foreach($lengthBag->thresholds->values as $threshold => $value)
+        @foreach($lengthBag->getThresholdCounts() as $threshold => $value)
         <tr>
             <td>> {{ $threshold }}</td>
             <td>{{ $value }}</td>
-            <td>{{ $helper::numberFormat(
-                $value * 100 / $lengthBag->count
+            <td>{{ App\Helper::numberFormat(
+                $value * 100 / $lengthBag->getCount()
             ) }} %</td>
         </tr>
         @endforeach()
