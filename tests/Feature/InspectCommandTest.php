@@ -13,7 +13,7 @@ class InspectCommandTest extends TestCase
     public function it_displays_the_summary(): void
     {
         $this->artisan('inspect ' . self::FIXTURES)
-            ->expectsOutputToContain('| 3           | 62           | 35           |')
+            ->expectsOutputToContain('| 3           | 70           | 39           |')
             ->assertSuccessful();
     }
 
@@ -32,7 +32,7 @@ class InspectCommandTest extends TestCase
     #[Test]
     public function it_succeeds_when_no_line_exceeds_the_max(): void
     {
-        $this->artisan('inspect ' . self::FIXTURES . ' --max=62')
+        $this->artisan('inspect ' . self::FIXTURES . ' --max=70')
             ->doesntExpectOutputToContain('Sample.php')
             ->assertSuccessful();
     }
@@ -40,8 +40,8 @@ class InspectCommandTest extends TestCase
     #[Test]
     public function it_fails_when_a_line_exceeds_the_max(): void
     {
-        $this->artisan('inspect ' . self::FIXTURES . ' --max=61')
-            ->expectsOutputToContain('| tests/Fixtures/Sample.php | 7    | 62     |')
+        $this->artisan('inspect ' . self::FIXTURES . ' --max=69')
+            ->expectsOutputToContain('| tests/Fixtures/Sample.php | 7    | 70     |')
             ->assertFailed();
     }
 
@@ -49,8 +49,8 @@ class InspectCommandTest extends TestCase
     public function it_limits_the_exceeded_lines(): void
     {
         $this->artisan('inspect ' . self::FIXTURES . ' --max=10 --top=1')
-            ->expectsOutputToContain('| 7    | 62     |')
-            ->doesntExpectOutputToContain('| 5    | 31     |')
+            ->expectsOutputToContain('| 7    | 70     |')
+            ->doesntExpectOutputToContain('| 5    | 35     |')
             ->assertFailed();
     }
 
@@ -82,7 +82,7 @@ class InspectCommandTest extends TestCase
     public function it_rejects_an_invalid_max(): void
     {
         $this->artisan('inspect ' . self::FIXTURES . ' --max=abc')
-            ->expectsOutput('The --max option must be a positive integer.')
+            ->expectsOutput('The --max option must be an integer greater than or equal to 1.')
             ->assertExitCode(2);
     }
 
@@ -90,7 +90,15 @@ class InspectCommandTest extends TestCase
     public function it_rejects_an_invalid_top(): void
     {
         $this->artisan('inspect ' . self::FIXTURES . ' --max=10 --top=0')
-            ->expectsOutput('The --top option must be a positive integer.')
+            ->expectsOutput('The --top option must be an integer greater than or equal to 1.')
             ->assertExitCode(2);
+    }
+
+    #[Test]
+    public function it_can_ignore_the_indentation(): void
+    {
+        $this->artisan('inspect ' . self::FIXTURES . ' --without-indentation')
+            ->expectsOutputToContain('| 3           | 62           | 35           |')
+            ->assertSuccessful();
     }
 }

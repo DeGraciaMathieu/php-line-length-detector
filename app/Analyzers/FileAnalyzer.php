@@ -11,7 +11,12 @@ use DeGraciaMathieu\FileExplorer\File;
 
 class FileAnalyzer
 {
-    private const MIN_LENGTH = 10;
+    public function __construct(
+        private readonly bool $withIndentation = true,
+        private readonly int $tabWidth = 4,
+        private readonly int $minLength = 10,
+        private readonly bool $includeComments = false,
+    ) {}
 
     /**
      * @return Generator<int, Line>
@@ -26,42 +31,56 @@ class FileAnalyzer
 
         foreach ($lines as $index => $line) {
 
-            $line = trim($line);
+            $line = rtrim($line);
 
-            $line = $this->removingLineBreaks($line);
+            $content = ltrim($line);
 
-            if ($this->unwantedLine($line)) {
+            if ($this->isIgnored($content)) {
                 continue;
             }
 
-            $length = strlen($line);
-
-            if ($this->lineIsTooShort($length)) {
-                continue;
-            }
+            $length = $this->measure($this->withIndentation ? $line : $content);
 
             yield new Line($file->displayPath, $index + 1, $length);
         }
     }
 
-    private function removingLineBreaks(string $line): string
+    private function isIgnored(string $content): bool
     {
-        return (string) preg_replace('~[\r\n]+~', '', $line);
+        return $content === ''
+            || mb_strlen($content) < $this->minLength
+            || $this->isImport($content)
+            || (! $this->includeComments && $this->isComment($content));
     }
 
-    private function unwantedLine(string $line): bool
+    private function isImport(string $content): bool
     {
-        return $line === 'return;'
-            || $line === 'continue;'
-            || str_starts_with($line, '#')
-            || str_starts_with($line, '*')
-            || str_starts_with($line, '/*')
-            || str_starts_with($line, '//')
-            || str_starts_with($line, 'use');
+        return preg_match('~^use\s~', $content) === 1;
     }
 
-    private function lineIsTooShort(int $length): bool
+    private function isComment(string $content): bool
     {
-        return $length < self::MIN_LENGTH;
+        $isAttribute = str_starts_with($content, '#[');
+
+        return (str_starts_with($content, '#') && ! $isAttribute)
+            || str_starts_with($content, '*')
+            || str_starts_with($content, '/*')
+            || str_starts_with($content, '//');
+    }
+
+    /**
+     * Tabs are expanded to the next tab stop, as an editor displays them.
+     */
+    private function measure(string $line): int
+    {
+        $length = 0;
+
+        foreach (mb_str_split($line) as $character) {
+            $length += $character === "\t"
+                ? $this->tabWidth - ($length % $this->tabWidth)
+                : 1;
+        }
+
+        return $length;
     }
 }
