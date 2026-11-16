@@ -53,4 +53,44 @@ class InspectCommandTest extends TestCase
             ->doesntExpectOutputToContain('| 5    | 31     |')
             ->assertFailed();
     }
+
+    #[Test]
+    public function it_warns_when_there_is_no_line_to_analyze(): void
+    {
+        $this->artisan('inspect ' . self::FIXTURES . '/Empty --max=10')
+            ->expectsOutput('No line to analyze.')
+            ->assertSuccessful();
+    }
+
+    #[Test]
+    public function it_rejects_a_missing_path(): void
+    {
+        $this->artisan('inspect ' . self::FIXTURES . ',missing')
+            ->expectsOutput('The path [missing] does not exist.')
+            ->assertExitCode(2);
+    }
+
+    #[Test]
+    public function it_rejects_invalid_thresholds(): void
+    {
+        $this->artisan('inspect ' . self::FIXTURES . ' --thresholds=60,abc')
+            ->expectsOutput('The threshold [abc] must be a positive integer.')
+            ->assertExitCode(2);
+    }
+
+    #[Test]
+    public function it_rejects_an_invalid_max(): void
+    {
+        $this->artisan('inspect ' . self::FIXTURES . ' --max=abc')
+            ->expectsOutput('The --max option must be a positive integer.')
+            ->assertExitCode(2);
+    }
+
+    #[Test]
+    public function it_rejects_an_invalid_top(): void
+    {
+        $this->artisan('inspect ' . self::FIXTURES . ' --max=10 --top=0')
+            ->expectsOutput('The --top option must be a positive integer.')
+            ->assertExitCode(2);
+    }
 }

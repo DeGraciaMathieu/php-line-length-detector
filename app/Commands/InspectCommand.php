@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Commands;
 
 use Generator;
+use InvalidArgumentException;
 use LaravelZero\Framework\Commands\Command;
 use DeGraciaMathieu\FileExplorer\FileFinder;
 use App\Bags\LengthBag;
@@ -36,17 +37,30 @@ class InspectCommand extends Command
     {
         $this->info('❀ PHP Line Length Detector ❀');
 
-        $files = $this->getFilesFromPath();
+        try {
+            $paths = $this->getPaths();
+            $thresholds = Thresholds::fromString($this->option('thresholds'));
+            $exceededLineBag = $this->makeExceededLineBag();
+            $top = $this->getPositiveIntegerOption('top');
+        } catch (InvalidArgumentException $e) {
+            $this->error($e->getMessage());
 
-        $lengthBag = new LengthBag(
-            Thresholds::fromString($this->option('thresholds'))
-        );
+            return self::INVALID;
+        }
 
-        $exceededLineBag = $this->makeExceededLineBag();
+        $files = $this->getFilesFromPaths($paths);
+
+        $lengthBag = new LengthBag($thresholds);
 
         $this->analyseFiles($files, $lengthBag, $exceededLineBag);
 
-        app(ViewRenderer::class)->display($lengthBag, $exceededLineBag, $this->getTop());
+        if ($lengthBag->count === 0) {
+            $this->warn('No line to analyze.');
+
+            return self::SUCCESS;
+        }
+
+        app(ViewRenderer::class)->display($lengthBag, $exceededLineBag, $top);
 
         if ($exceededLineBag?->isEmpty() === false) {
             return self::FAILURE;
@@ -55,34 +69,53 @@ class InspectCommand extends Command
         return self::SUCCESS;
     }
 
+    private function getPaths(): array
+    {
+        $paths = explode(',', $this->argument('path'));
+
+        foreach ($paths as $path) {
+            if (! file_exists($path)) {
+                throw new InvalidArgumentException("The path [$path] does not exist.");
+            }
+        }
+
+        return $paths;
+    }
+
     private function makeExceededLineBag(): ?ExceededLineBag
     {
-        $max = $this->option('max');
+        $max = $this->getPositiveIntegerOption('max');
 
         if ($max === null) {
             return null;
         }
 
-        return new ExceededLineBag((int) $max);
+        return new ExceededLineBag($max);
     }
 
-    private function getTop(): ?int
+    private function getPositiveIntegerOption(string $name): ?int
     {
-        $top = $this->option('top');
+        $value = $this->option($name);
 
-        return $top === null ? null : (int) $top;
+        if ($value === null) {
+            return null;
+        }
+
+        if (! ctype_digit($value) || (int) $value === 0) {
+            throw new InvalidArgumentException("The --$name option must be a positive integer.");
+        }
+
+        return (int) $value;
     }
 
-    private function getFilesFromPath(): Generator
+    private function getFilesFromPaths(array $paths): Generator
     {
         $fileFinder = new FileFinder(
             basePath: getcwd(),
         );
 
-        $path = $this->argument('path');
-
         return $fileFinder->getFiles(
-            paths: explode(',', $path),
+            paths: $paths,
         );
     }
 
@@ -91,6 +124,12 @@ class InspectCommand extends Command
         foreach ($files as $file) {
 
             $lines = file($file->fullPath);
+
+            if ($lines === false) {
+                $this->warn("Unable to read [$file->displayPath].");
+
+                continue;
+            }
 
             foreach ($lines as $index => $line) {
 
