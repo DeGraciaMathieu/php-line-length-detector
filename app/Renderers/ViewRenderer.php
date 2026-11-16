@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Renderers;
 
 use Termwind\HtmlRenderer;
@@ -34,6 +36,6 @@ class ViewRenderer
 
     private function renderHtml(ViewContract $html): void
     {
-        $this->htmlRenderer->render($html, OutputInterface::OUTPUT_NORMAL);
+        $this->htmlRenderer->render($html->render(), OutputInterface::OUTPUT_NORMAL);
     }
 }

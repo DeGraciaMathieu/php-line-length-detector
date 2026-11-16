@@ -14,11 +14,7 @@ class ThresholdsTest extends TestCase
     {
         $thresholds = Thresholds::fromString('50,30,10');
 
-        $this->assertSame([
-            '50' => 0,
-            '30' => 0,
-            '10' => 0,
-        ], $thresholds->values);
+        $this->assertSame([50, 30, 10], $thresholds->values);
     }
 
     #[Test]
@@ -26,11 +22,7 @@ class ThresholdsTest extends TestCase
     {
         $thresholds = Thresholds::fromString('30, 50,30,10');
 
-        $this->assertSame([
-            50 => 0,
-            30 => 0,
-            10 => 0,
-        ], $thresholds->values);
+        $this->assertSame([50, 30, 10], $thresholds->values);
     }
 
     #[Test]
