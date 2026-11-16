@@ -27,14 +27,14 @@ class InspectCommand extends Command
      *
      * @var string
      */
-    protected $description = '';
+    protected $description = 'Analyze the line length of PHP files';
 
     /**
      * Execute the console command.
      */
     public function handle(): int
     {
-        $this->info('❀ PHP Line Lenght Detector ❀');
+        $this->info('❀ PHP Line Length Detector ❀');
 
         $files = $this->getFilesFromPath();
 
