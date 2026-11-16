@@ -49,4 +49,30 @@
         @endforeach()
     </table>
     @endif
+    @if($fileBag)
+    <table>
+        <thead>
+            <tr>
+                <th>file</th>
+                <th>lines</th>
+                <th>largest line</th>
+                <th>average line</th>
+                @if($fileBag->hasMax())
+                <th>exceeded</th>
+                @endif
+            </tr>
+        </thead>
+        @foreach($fileBag->getSummaries($top) as $summary)
+        <tr>
+            <td>{{ $summary->file }}</td>
+            <td>{{ $summary->count }}</td>
+            <td>{{ $summary->max }}</td>
+            <td>{{ $summary->average }}</td>
+            @if($fileBag->hasMax())
+            <td>{{ $summary->exceeded }}</td>
+            @endif
+        </tr>
+        @endforeach()
+    </table>
+    @endif
 </div>
