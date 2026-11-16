@@ -101,4 +101,20 @@ class InspectCommandTest extends TestCase
             ->expectsOutputToContain('| 3           | 62           | 35           |')
             ->assertSuccessful();
     }
+
+    #[Test]
+    public function it_can_exclude_files(): void
+    {
+        $this->artisan('inspect ' . self::FIXTURES . ' --exclude=Sample\.php$')
+            ->expectsOutput('No line to analyze.')
+            ->assertSuccessful();
+    }
+
+    #[Test]
+    public function it_rejects_an_invalid_exclude_pattern(): void
+    {
+        $this->artisan('inspect ' . self::FIXTURES . ' --exclude=[')
+            ->expectsOutput('The exclude pattern [[] is not a valid regular expression.')
+            ->assertExitCode(2);
+    }
 }

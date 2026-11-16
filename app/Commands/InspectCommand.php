@@ -23,7 +23,7 @@ class InspectCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'inspect {path} {--thresholds=160,120,80,60,30} {--max=} {--top=} {--without-indentation} {--tab-width=4} {--min-length=10} {--include-comments}';
+    protected $signature = 'inspect {path} {--thresholds=160,120,80,60,30} {--max=} {--top=} {--without-indentation} {--tab-width=4} {--min-length=10} {--include-comments} {--exclude=*}';
 
     /**
      * The description of the command.
@@ -41,6 +41,7 @@ class InspectCommand extends Command
 
         try {
             $paths = $this->getPaths();
+            $excludePatterns = $this->getExcludePatterns();
             $thresholds = Thresholds::fromString($this->getStringOption('thresholds') ?? '');
             $exceededLineBag = $this->makeExceededLineBag();
             $top = $this->getIntegerOption('top');
@@ -51,7 +52,7 @@ class InspectCommand extends Command
             return self::INVALID;
         }
 
-        $files = $this->getFilesFromPaths($paths);
+        $files = $this->getFilesFromPaths($paths, $excludePatterns);
 
         $lengthBag = new LengthBag($thresholds);
 
@@ -92,6 +93,28 @@ class InspectCommand extends Command
         }
 
         return $paths;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getExcludePatterns(): array
+    {
+        $patterns = $this->option('exclude');
+
+        if (! is_array($patterns)) {
+            return [];
+        }
+
+        $patterns = array_values(array_filter($patterns, 'is_string'));
+
+        foreach ($patterns as $pattern) {
+            if (@preg_match("#{$pattern}#", '') === false) {
+                throw new InvalidArgumentException("The exclude pattern [$pattern] is not a valid regular expression.");
+            }
+        }
+
+        return $patterns;
     }
 
     private function makeExceededLineBag(): ?ExceededLineBag
@@ -143,12 +166,14 @@ class InspectCommand extends Command
 
     /**
      * @param list<string> $paths
+     * @param list<string> $excludePatterns
      * @return Generator<int, File>
      */
-    private function getFilesFromPaths(array $paths): Generator
+    private function getFilesFromPaths(array $paths, array $excludePatterns): Generator
     {
         $fileFinder = new FileFinder(
             basePath: getcwd() ?: '.',
+            ignorePatterns: $excludePatterns,
         );
 
         return $fileFinder->getFiles(
