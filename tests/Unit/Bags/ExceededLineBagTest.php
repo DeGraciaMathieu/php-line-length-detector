@@ -3,14 +3,13 @@
 namespace Tests\Unit\Bags;
 
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use App\Dtos\Line;
 use App\Bags\ExceededLineBag;
 
 class ExceededLineBagTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function it_keeps_only_lines_exceeding_the_max(): void
     {
         $exceededLineBag = new ExceededLineBag(50);
@@ -23,9 +22,7 @@ class ExceededLineBagTest extends TestCase
         $this->assertSame(3, $exceededLineBag->items[0]->number);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_returns_the_longest_lines_first(): void
     {
         $exceededLineBag = new ExceededLineBag(10);
@@ -42,9 +39,7 @@ class ExceededLineBagTest extends TestCase
         $this->assertSame([40, 30, 20], $lengths);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_limits_the_longest_lines(): void
     {
         $exceededLineBag = new ExceededLineBag(10);
@@ -56,9 +51,7 @@ class ExceededLineBagTest extends TestCase
         $this->assertCount(2, $exceededLineBag->getLongest(2));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_knows_when_it_is_empty(): void
     {
         $exceededLineBag = new ExceededLineBag(10);

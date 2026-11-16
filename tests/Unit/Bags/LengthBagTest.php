@@ -1,17 +1,16 @@
 <?php
 
-namespace Tests\Unit\Aggregators;
+namespace Tests\Unit\Bags;
 
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use App\Bags\LengthBag;
 use App\Dtos\Thresholds;
 
 class LengthBagTest extends TestCase
 {
-    /**
-     * @test
-     */
-    public function it_able_to_aggregate_values(): void
+    #[Test]
+    public function it_can_aggregate_values(): void
     {
         $lengthBag = new LengthBag(
             new Thresholds([
@@ -38,10 +37,8 @@ class LengthBagTest extends TestCase
         ], $lengthBag->thresholds->values);
     }
 
-    /**
-     * @test
-     */
-    public function it_able_to_find_the_max_value(): void
+    #[Test]
+    public function it_can_find_the_max_value(): void
     {
         $lengthBag = app(LengthBag::class);
 
@@ -54,10 +51,8 @@ class LengthBagTest extends TestCase
         $this->assertSame(50, $max);
     }
 
-    /**
-     * @test
-     */
-    public function it_able_to_calculate_the_average(): void
+    #[Test]
+    public function it_can_calculate_the_average(): void
     {
         $lengthBag = new LengthBag(
             new Thresholds([
