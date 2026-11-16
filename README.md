@@ -13,7 +13,7 @@ A simple way to analyze the line length of your PHP files.
 # Installation
 
 ```
-Requires >= PHP 8.1
+Requires >= PHP 8.2
 ```
 
 ## Phar

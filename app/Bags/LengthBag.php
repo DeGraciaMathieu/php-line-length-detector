@@ -35,10 +35,10 @@ class LengthBag
 
     private function increaseThresholds(int $length): void
     {
-        foreach ($this->thresholds->values as $threshold => &$values) {
+        foreach (array_keys($this->thresholds->values) as $threshold) {
 
             if ($threshold < $length) {
-                $values++;
+                $this->thresholds->values[$threshold]++;
             }
         }
     }
