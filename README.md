@@ -42,7 +42,7 @@ php php-line-length-detector inspect {path}
 ```
 $ php php-line-length-detector inspect app
 
-❀ PHP Line Lenght Detector ❀
+❀ PHP Line Length Detector ❀
 +-------------+--------------+--------------+
 | total lines | largest line | average line |
 +-------------+--------------+--------------+
@@ -62,7 +62,7 @@ You can configure thresholds with the `--thresholds=` option (default : 160,120,
 ```
 $ php php-line-length-detector inspect app --thresholds=120,60
 
-❀ PHP Line Lenght Detector ❀
+❀ PHP Line Length Detector ❀
 +-------------+--------------+--------------+
 | total lines | largest line | average line |
 +-------------+--------------+--------------+
