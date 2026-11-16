@@ -24,6 +24,11 @@ class ExceededLineBag
         }
     }
 
+    public function getMax(): int
+    {
+        return $this->max;
+    }
+
     public function isEmpty(): bool
     {
         return $this->items === [];

@@ -8,41 +8,29 @@ use Termwind\HtmlRenderer;
 use Symfony\Component\Console\Output\OutputInterface;
 use Illuminate\Contracts\View\View as ViewContract;
 use Illuminate\View\Factory as ViewFactory;
-use App\Bags\LengthBag;
-use App\Bags\ExceededLineBag;
-use App\Bags\FileBag;
+use App\Dtos\Report;
 
-class ViewRenderer
+class ViewRenderer implements Renderer
 {
     public function __construct(
         private ViewFactory $view,
         private HtmlRenderer $htmlRenderer,
     ) {}
 
-    public function display(
-        LengthBag $lengthBag,
-        ?ExceededLineBag $exceededLineBag,
-        ?FileBag $fileBag,
-        ?int $top,
-    ): void
+    public function display(Report $report): void
     {
-        $html = $this->makeHtml($lengthBag, $exceededLineBag, $fileBag, $top);
+        $html = $this->makeHtml($report);
 
         $this->renderHtml($html);
     }
 
-    protected function makeHtml(
-        LengthBag $lengthBag,
-        ?ExceededLineBag $exceededLineBag,
-        ?FileBag $fileBag,
-        ?int $top,
-    ): ViewContract
+    protected function makeHtml(Report $report): ViewContract
     {
         return $this->view->make('inspect', [
-            'lengthBag' => $lengthBag,
-            'exceededLineBag' => $exceededLineBag,
-            'fileBag' => $fileBag,
-            'top' => $top,
+            'lengthBag' => $report->lengthBag,
+            'exceededLineBag' => $report->exceededLineBag,
+            'fileBag' => $report->fileBag,
+            'top' => $report->top,
         ]);
     }
 
